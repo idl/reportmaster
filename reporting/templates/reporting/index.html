@@ -1,0 +1,193 @@
+{% load staticfiles %}
+<!doctype html>
+<html>
+	<head>
+		<link rel="stylesheet" type="text/css" href="{% static 'reporting/bootstrap/css/bootstrap.min.css' %}" />
+		<script src="{% static 'reporting/jquery-1.11.0.min.js' %}"></script>
+		<script src="{% static 'reporting/bootstrap/js/bootstrap.min.js' %}"></script>
+	</head>
+	
+	<body>
+		<nav class="navbar navbar-default navbar-static-top" role="navigation">
+	 		<div class="container">
+	 			<ul class="nav navbar-nav pull-left">
+					<li><a class="navbar-brand" href"#">ReportMaster</a></li>
+				</ul>
+				<ul class="nav navbar-nav pull-right">
+      		<li><a href="{% url 'logout' %}"> Logout </a></li>
+				</ul>
+			</div>
+		</nav>
+		<div class="container">
+			<div class="col-md-3">
+				<div class="panel-group" id="accordion">
+					<div class="panel panel-default">
+			    	<div class="panel-heading">
+		      		<h4 class="panel-title">
+		        		<a href="#collapseOne" data-toggle="collapse" data-parent="#accordion">
+		          		Add Report Item
+		        		</a>
+			     		</h4>
+			    	</div>
+				    <div id="collapseOne" class="panel-collapse collapse in">
+				    	<div class="panel-body">
+				    		<div class="row">
+				    			<div class="col-md-12">
+				    				<form action="{% url 'reporting:save_item' %}" method="POST" role="form">
+				    					{% csrf_token %}
+						        	<div class="form-group">
+						        		<label for="">Description</label>
+						        		<textarea name="report_item_description" id="" cols="25" rows="5" class="form-control"></textarea>
+						        	</div>
+						        	<div class="form-group">
+						        		<label for="">Tags</label>
+						        		<input type="text" name="report_item_tags" class="form-control">
+						        	</div>
+						        	<div class="form-group">
+						        		<input type="submit" class="btn btn-success">
+						        	</div>
+						        </form>		
+				    			</div>
+				    		</div>
+				        
+			      	</div>
+				    </div>
+					</div>
+					<div class="panel panel-default">
+			    	<div class="panel-heading">
+		      		<h4 class="panel-title">
+		        		<a href="#collapseTwo" data-toggle="collapse" data-parent="#accordion">
+		          		Filter/Add Report
+		        		</a>
+		      		</h4>
+			    	</div> <!-- panel-heading -->
+				    <div id="collapseTwo" class="panel-collapse collapse">
+				    	<div class="panel-body">
+			        	<div class="row">
+			        		<div class="col-md-12">
+			        			<form role="form" action="{% url 'reporting:index' %}" method="POST" id="report_form">
+			        				{% csrf_token %}
+				        			<div class="form-group">
+				        				<label for="">Min Date</label>
+				        				<input type="date" class="form-control" name="min_date" value="2013-01-01">
+				        			</div>
+				        			<div class="form-group">
+				        				<label for="">Max Date</label>
+				        				<input type="date" class="form-control" name="max_date" value="2020-01-01">
+				        			</div>
+											<div class="form-group">
+												<label for="">
+													Tags
+												</label>
+												{% for tag in tags.all %}
+													<div class="checkbox">
+													  <label>
+													    <input type="checkbox" name="filter_tags" value="{{tag.id}}">
+													    {{tag.name}}
+													  </label>
+													</div>
+												{% endfor %}
+											</div>
+											<div class="form-group">
+												<label for="">Authors</label>
+												{% for author in authors %}
+													<div class="checkbox">
+													  <label>
+													    <input type="checkbox" name="filter_authors" value="{{author.id}}">
+													    {{author.name}}
+													  </label>
+													</div>
+												{% endfor %}
+											</div>
+
+											<div class="form-group">
+												<button class="btn btn-success" value="Save Report">
+													Filter
+												</button>
+											</div>
+
+											<div class="form-group">
+												<label for="">Name</label>
+												<input type="text" name="report_name" placeholder="Name" value="" class="form-control" size="25">
+											</div>
+
+											<div class="form-group">
+												<label for="">Description</label>
+												<textarea name="report_description" class="form-control" rows="4" cols="25" placeholder="description"></textarea>
+											</div>
+
+											<div class="form-group">
+												<input type="submit" class="btn btn-success" id="save_report" value="Save Report">
+											</div>
+				        		</form>
+			        		</div>
+								</div>
+				    	</div> <!-- panel-body -->
+				    </div><!-- panel-collapse -->
+					</div> <!-- panel panel-default -->
+					<div class="panel panel-default">
+				    <div class="panel-heading">
+				    	<h4 class="panel-title">
+			        	<a data-toggle="collapse" data-parent="#accordion" href="#collapseThree">
+			        	Reports
+			        	</a>
+			      	</h4>
+				   	</div>
+				    <div id="collapseThree" class="panel-collapse collapse">
+			      	<div class="panel-body">
+			    			{% for report in reports %}
+			    				<div class="row">
+			    					<div class="col-sm-12">
+			    						<h4>
+			    							<a href="{% url 'reporting:view_report' pk=report.id%}">{{report.name}}</a></h4>
+			    					</div>
+			    				</div>
+
+			    			{% endfor %}
+			    		</div>
+				    </div>
+					</div>
+				</div> <!-- panel-group -->		
+			</div> <!-- col-3 -->
+			<div class="col-md-9">
+				{% if messages %}
+			    {% for message in messages %}
+			    	<div class="alert alert-{{ message.tags }}">{{message}}</div>
+			    {% endfor %}
+				{% endif %}
+				
+				{% for item in report_items %}
+					<div class="row">
+						<div class="col-sm-12">
+							<h4>
+								{{item.created_by.name}}
+								<small>{{item.created_at}}</small>
+								{% if user = item.created_by %}
+									EDIT
+								{% endif %}
+							</h4>
+							<p>{{item.content}}</p>
+							<ul>
+								{% for tag in item.tags.all%}
+									<li>
+										{{tag.name}}
+									</li>
+								{% endfor %}
+							</ul>
+						</div>	
+					</div>
+					{% empty %}
+					None
+				{% endfor %}
+			</div> <!-- col-9 -->
+		</div> <!-- container -->
+		<script>
+			$('body').on('click', '#save_report', function (event) {
+				$('#report_form').attr('action', "{% url 'reporting:save_report' %}");
+				event.preventDefault();
+				event.stopPropagation();
+				$('#report_form').submit();
+			});
+		</script>
+	</body>
+</html>
