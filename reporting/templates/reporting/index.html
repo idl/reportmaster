@@ -3,18 +3,29 @@
 <html>
 	<head>
 		<link rel="stylesheet" type="text/css" href="{% static 'reporting/bootstrap/css/bootstrap.min.css' %}" />
-		<script src="{% static 'reporting/jquery-1.11.0.min.js' %}"></script>
-		<script src="{% static 'reporting/bootstrap/js/bootstrap.min.js' %}"></script>
+		<script src="{% static 'reporting/jquery-1.11.0.min.js' %}">
+		</script>
+		<script src="{% static 'reporting/bootstrap/js/bootstrap.min.js' %}">
+		</script>
+		<!-- Tag-it Widget Includes -->
+		<!-- <script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.8.12/jquery-ui.min.js" type="text/javascript" charset="utf-8">
+		</script>
+		<script src="{% static 'reporting/tag-it.js' %}" type="text/javascript" charset="utf-8">
+		</script>
+		<link rel="stylesheet" type="text/css" href="http://ajax.googleapis.com/ajax/libs/jqueryui/1/themes/flick/jquery-ui.css">
+		<link href="{% static 'reporting/jquery.tagit.css' %}" rel="stylesheet" type="text/css"> -->
 	</head>
 	
 	<body>
+		
 		<nav class="navbar navbar-default navbar-static-top" role="navigation">
 	 		<div class="container">
 	 			<ul class="nav navbar-nav pull-left">
 					<li><a class="navbar-brand" href"#">ReportMaster</a></li>
 				</ul>
 				<ul class="nav navbar-nav pull-right">
-      		<li><a href="{% url 'logout' %}"> Logout </a></li>
+					<li><a>Logged in as {{ user.name }}</a></li>
+      				<li><a href="{% url 'logout' %}"> Logout </a></li>
 				</ul>
 			</div>
 		</nav>
@@ -37,11 +48,11 @@
 				    					{% csrf_token %}
 						        	<div class="form-group">
 						        		<label for="">Description</label>
-						        		<textarea name="report_item_description" id="" cols="25" rows="5" class="form-control"></textarea>
+						        		<textarea name="report_item_description" id="" cols="25" rows="5" placeholder="Description" class="form-control"></textarea>
 						        	</div>
 						        	<div class="form-group">
 						        		<label for="">Tags</label>
-						        		<input type="text" name="report_item_tags" class="form-control">
+						        		<input type="text" name="report_item_tags" placeholder="Tags" class="form-control">
 						        	</div>
 						        	<div class="form-group">
 						        		<input type="submit" class="btn btn-success">
@@ -49,7 +60,6 @@
 						        </form>		
 				    			</div>
 				    		</div>
-				        
 			      	</div>
 				    </div>
 					</div>
@@ -77,19 +87,34 @@
 				        			</div>
 											<div class="form-group">
 												<label for="">
-													Tags
+													<div class="col-md-4">
+														Tags
+													</div>
+													<div class="col-md-8">
+														<input type="button" id="check_all_tags" value="All">&nbsp;|&nbsp;<input type="button" id="check_none_tags" value="None">
+													</div>
 												</label>
 												{% for tag in tags.all %}
 													<div class="checkbox">
 													  <label>
-													    <input type="checkbox" name="filter_tags" value="{{tag.id}}">
+													    <input class="checkbox1" type="checkbox" name="filter_tags" value="{{tag.id}}">
 													    {{tag.name}}
+													    <a href="{% url 'reporting:delete_tag' pk=tag.id %}" class="btn btn-xs btn-danger pull-right">
+													    	<span class="glyphicon glyphicon-remove"></span>
+													    </a>
 													  </label>
 													</div>
 												{% endfor %}
 											</div>
 											<div class="form-group">
-												<label for="">Authors</label>
+												<label for="">
+													<div class="col-md-4">
+															Authors
+													</div>
+													<div class="col-md-8">
+														<input type="button" id="check_all_authors" value="All">&nbsp;|&nbsp;<input type="button" id="check_none_authors" value="None">
+													</div>
+												</label>
 												{% for author in authors %}
 													<div class="checkbox">
 													  <label>
@@ -113,7 +138,7 @@
 
 											<div class="form-group">
 												<label for="">Description</label>
-												<textarea name="report_description" class="form-control" rows="4" cols="25" placeholder="description"></textarea>
+												<textarea name="report_description" class="form-control" rows="4" cols="25" placeholder="Description"></textarea>
 											</div>
 
 											<div class="form-group">
@@ -137,9 +162,15 @@
 			      	<div class="panel-body">
 			    			{% for report in reports %}
 			    				<div class="row">
-			    					<div class="col-sm-12">
+			    					<div class="col-sm-9">
 			    						<h4>
-			    							<a href="{% url 'reporting:view_report' pk=report.id%}">{{report.name}}</a></h4>
+			    							<a href="{% url 'reporting:view_report' pk=report.id %}">{{report.name}}</a>
+			    						</h4>
+			    					</div>
+			    					<div class="col-sm-3">
+			    						<a href="{% url 'reporting:delete_report' pk=report.id %}" class="btn btn-sm btn-danger">
+			    							<span class="glyphicon glyphicon-remove"></span>
+			    						</a>
 			    					</div>
 			    				</div>
 
@@ -163,11 +194,13 @@
 								{{item.created_by.name}}
 								<small>{{item.created_at}}</small>
 								{% if user = item.created_by %}
-									EDIT
+									<a href="{% url 'reporting:edit_item' pk=item.id %}" id="edit_page" class="edit_item">Edit</a>
+									<!-- <div id="somediv" title="Edit Report Item" style="display:none;">
+									</div> -->
 								{% endif %}
 							</h4>
-							<p>{{item.content}}</p>
-							<ul>
+								<p>{{ item.content }}</p>
+							<ul id="myTags">
 								{% for tag in item.tags.all%}
 									<li>
 										{{tag.name}}
@@ -181,13 +214,67 @@
 				{% endfor %}
 			</div> <!-- col-9 -->
 		</div> <!-- container -->
+		<div class="modal fade" id="edit_modal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+		  <div class="modal-dialog">
+		    <div class="modal-content">
+		      <div class="modal-header">
+		        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+		        <h4 class="modal-title" id="myModalLabel">Edit Report Item</h4>
+		      </div>
+		      <div class="modal-body" id="edit_modal_body">
+		        ...
+		      </div>
+		    </div>
+		  </div>
+		</div>
+
+		<!-- Begin Check All or None Scripts -->
 		<script>
-			$('body').on('click', '#save_report', function (event) {
-				$('#report_form').attr('action', "{% url 'reporting:save_report' %}");
-				event.preventDefault();
-				event.stopPropagation();
-				$('#report_form').submit();
+		    $(document).ready(function () {
+		    	$('body').on('click', '#save_report', function (event) {
+					$('#report_form').attr('action', "{% url 'reporting:save_report' %}");
+					event.preventDefault();
+					event.stopPropagation();
+					$('#report_form').submit();
+				});
+
+			    $('body').on('click', '#check_all_tags', function (e) {
+		    	    $(':input[name="filter_tags"]').prop('checked', true);
+		        	e.preventDefault();
+		        return false;
+			    });
+			    
+			    $('body').on('click', '#check_none_tags', function (e) {
+			        $(':input[name="filter_tags"]').prop('checked', false);
+			        e.preventDefault();
+			        return false;
+			    });
+
+			    $('body').on('click', '#check_all_authors', function (e) {
+		        	$(':input[name="filter_authors"]').prop('checked', true);
+		        	e.preventDefault();
+		        	return false;
+			    });
+			    
+			    $('body').on('click', '#check_none_authors', function (e) {
+		        	$(':input[name="filter_authors"]').prop('checked', false);
+		        	e.preventDefault();
+		        	return false;
+			    });
+
+			    $('body').on('click', '.edit_item', function (e) {
+			    	e.preventDefault();
+			    	e.stopPropagation();
+			    	var $el = $(e.target);
+			    	var url = $el.attr('href');
+			    	$('#edit_modal_body').load(url, function () {
+			    		$('#edit_modal').modal('show');
+			    	});
+			    	return false;
+
+			    });
 			});
 		</script>
+		<!-- End Check All or None Scripts -->
 	</body>
 </html>

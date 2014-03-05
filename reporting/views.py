@@ -39,6 +39,7 @@ def index(request):
 	}
 	return render_to_response('reporting/index.html', data, context_instance=RequestContext(request))
 
+@login_required(login_url='/login/')
 def save_report(request):
 	if request.POST:
 		# get the filters here from the form
@@ -79,10 +80,22 @@ def save_report(request):
 		return redirect('reporting:index')
 
 
+@login_required(login_url='/login/')
+def delete_report(request, pk):
+	report = Report.objects.get(pk=int(pk))
+	report.delete()
+	return redirect('reporting:index')
 
-def delete_report(request):
-	pass
+@login_required(login_url='/login/')
+def delete_tag(request, pk):
+	bad_tag = Tag.objects.get(pk=int(pk))
+	tagged_items = ReportItem.objects.filter(tags__id__in=pk)
+	for item in tagged_items:
+		item.tags.remove(bad_tag)
+	bad_tag.delete()
+	return redirect('reporting:index')
 
+@login_required(login_url='/login/')
 def view_report(request, pk):
 	report = Report.objects.get(pk=int(pk))
 	data = {
@@ -91,6 +104,7 @@ def view_report(request, pk):
 	}
 	return render_to_response('reporting/view_report.html', data, context_instance=RequestContext(request))
 
+@login_required(login_url='/login/')
 def save_item(request):
 	if request.POST:
 		required_fields = ['report_item_description', 'report_item_tags']
@@ -115,5 +129,40 @@ def save_item(request):
 	messages.success(request, 'Added a report item')
 	return redirect('reporting:index')
 
-def edit_item(request):
-	pass
+@login_required(login_url='/login/')
+def edit_item(request, pk):
+	report_item = ReportItem.objects.get(pk=int(pk))
+	report_item_tags = report_item.tags.names()
+	tags = ", " .join(report_item_tags)
+	data ={
+		'report_item': report_item,
+		'tags': tags,
+	}
+
+	return render_to_response('reporting/edit_item.html', data, context_instance=RequestContext(request))
+
+@login_required(login_url='/login/')
+def save_edit_item(request, pk):
+	if request.POST:
+		required_fields = ['report_edit_item_description', 'report_edit_item_tags']
+		for field in required_fields:
+			if field not in request.POST:
+				messages.error(request, 'Invalid Form.')
+				return redirect('reporting:index')
+		if request.POST['report_edit_item_description'] == "":
+			messages.warning(request, 'Please fill all fields.')
+			return redirect('reporting:index')
+
+		description = request.POST['report_edit_item_description']
+		tags_string = request.POST['report_edit_item_tags']
+		tags = [tag.strip() for tag in tags_string.split(',')]
+		item = ReportItem.objects.get(pk=int(pk))
+		item.created_by = request.user
+		item.content = description
+		item.save()
+		item.tags.clear()
+		for tag in tags:
+			item.tags.add(tag)
+
+	messages.success(request, 'Edited a report item')
+	return redirect('reporting:index')
