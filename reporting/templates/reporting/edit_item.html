@@ -1,0 +1,45 @@
+<div class="row">
+	<div class="col-md-12">
+		<h3>{{ report_item.created_by.name }}</h3>
+	</div>
+</div>
+<div class="row">
+	<div class="col-md-12">
+		<label for="">
+			<small>
+				Last Modified:&nbsp;&nbsp;
+				{{ report_item.last_modified }}
+			</small>
+		</label>
+	</div>
+</div>
+<div class="row">
+	<div class="col-md-12">
+		<form action="{% url 'reporting:save_edit_item' pk=report_item.id %}" method="POST" role="form">
+			{% csrf_token %}
+	    	<div class="form-group">
+	    		<label for="">Description</label>
+	    		<textarea name="report_edit_item_description" id="" cols="25" rows="5" class="form-control">{{ report_item.content }}</textarea>
+	    	</div>
+	    	<div class="form-group">
+	    		<label for="">Tags</label>
+	    		<input type="text" name="report_edit_item_tags" class="form-control" value="{{ tags }}">
+	    	</div>
+	    	<div class="form-group">
+	    		<input type="submit" class="btn btn-success">
+	    		<button class="btn btn-warning" id="close_edit_modal">Cancel</button>
+	    	</div>
+    	</form>
+	</div>
+</div>
+
+<script>
+$(document).ready(function () {
+	$('body').on('click', '#close_edit_modal', function (e){
+		$('#edit_modal').modal('hide');
+		e.preventDefault();
+		e.stopPropagation();
+		return false;
+	});
+});
+</script>

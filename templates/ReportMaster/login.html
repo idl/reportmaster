@@ -8,27 +8,34 @@
     </head>
 
     <div class="container">
-        <h1 class="text-center">Login to ReportMaster</h1>
-
-        <form id="login_form" method="post" action="/login/">
-            {% csrf_token %}
-            <div class="row">
-                <p class="col-md-12">
-                    Username: 
-                </p>
-                <div class="col-md-12"><input type="text" name="username" value="" size="50" />
-                </div>
-                <br />
-                <p class="col-md-12">
-                    Password: 
-                </p>
-                <div class="col-md-12"> <input type="password" name="password" value="" size="50" /></div>
-                <br />
+        <div class="row">
+            <div class ="col-md-4">
             </div>
-            <input type="submit" value="Submit" />
-            </br>
-        Don't have an account? <a href="{% url 'register' %}"> Register Here</a>
-        </form>
+            <div class ="col-md-4">
+                <h1 class="text-center">Login to ReportMaster</h1>
 
+                <form id="login_form" method="post" action="/login/">
+                    {% csrf_token %}
+                    <div class="row">
+                        <p class="col-md-12">
+                            Username: 
+                        </p>
+                        <div class="col-md-12"><input type="text" name="username" value="" size="50" />
+                        </div>
+                        <br />
+                        <p class="col-md-12">
+                            Password: 
+                        </p>
+                        <div class="col-md-12"> <input type="password" name="password" value="" size="50" /></div>
+                        <br />
+                    </div>
+                    <input type="submit" value="Submit" />
+                    </br>
+                Don't have an account? <a href="{% url 'register' %}"> Register Here</a>
+                </form>
+            </div>
+            <div class ="col-md-4">
+            </div>
+        </div>
     </div>
 </html>
